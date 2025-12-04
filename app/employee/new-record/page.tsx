@@ -1,0 +1,289 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { getCurrentUser } from '@/lib/auth';
+import { supabase } from '@/lib/supabase';
+import KakaoMap from '@/components/KakaoMap';
+import AddressSearch from '@/components/AddressSearch';
+import { Address } from '@/types';
+
+export default function NewRecordPage() {
+  const router = useRouter();
+  const [user, setUser] = useState<any>(null);
+  const [driveDate, setDriveDate] = useState(new Date().toISOString().split('T')[0]);
+  const [clientName, setClientName] = useState('');
+  const [distance, setDistance] = useState('');
+
+  const [departure, setDeparture] = useState<Address | null>(null);
+  const [destination, setDestination] = useState<Address | null>(null);
+  const [waypoints, setWaypoints] = useState<{ id: number; address: Address | null }[]>([]);
+
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [loadingDistance, setLoadingDistance] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    const currentUser = getCurrentUser();
+    if (!currentUser) {
+      router.push('/login');
+    } else {
+      setUser(currentUser);
+    }
+    setIsClient(true);
+  }, [router]);
+
+  const handleAddressSelect = (type: string, address: Address) => {
+    if (type === 'departure') setDeparture(address);
+    else if (type === 'destination') setDestination(address);
+    else if (type.startsWith('waypoint-')) {
+      const index = parseInt(type.split('-')[1], 10);
+      setWaypoints(prev =>
+        prev.map(wp => (wp.id === index ? { ...wp, address } : wp))
+      );
+    }
+  };
+
+  const addWaypoint = () => {
+    setWaypoints(prev => [...prev, { id: Date.now(), address: null }]);
+  };
+
+  const removeWaypoint = (id: number) => {
+    setWaypoints(prev => prev.filter(wp => wp.id !== id));
+  };
+
+  if (!isClient || !user) return null;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!departure || !destination) {
+      setError('출발지와 도착지를 모두 입력해주세요.');
+      return;
+    }
+    setError('');
+    setLoading(true);
+
+    try {
+      const { error } = await supabase.from('drive_records').insert([
+        {
+          user_id: user.id,
+          drive_date: driveDate,
+          departure: departure.address_name,
+          destination: destination.address_name,
+          waypoints: waypoints.map(wp => wp.address?.address_name).filter(Boolean),
+          distance: parseFloat(distance),
+          client_name: clientName,
+          status: 'draft',
+        },
+      ]);
+
+      if (error) {
+        throw error;
+      }
+
+      alert('운행 기록이 저장되었습니다!');
+      router.push('/employee/records');
+    } catch (err) {
+      setError('운행 기록 저장에 실패했습니다: ' + (err as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      <header className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto py-5 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">새 운행 기록</h1>
+            <p className="text-sm text-gray-500 mt-1">출발지와 도착지를 선택하고 운행 정보를 입력하세요</p>
+          </div>
+          <button
+            onClick={() => router.back()}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            <span>←</span> 뒤로가기
+          </button>
+        </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
+            {/* Form Section */}
+            <div className="p-8 bg-gradient-to-br from-gray-50 to-white">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <span className="text-xl">📝</span>
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">운행 정보 입력</h2>
+                  <p className="text-xs text-gray-500">모든 항목을 입력해주세요</p>
+                </div>
+              </div>
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div>
+                  <label htmlFor="drive_date" className="block text-sm font-semibold text-gray-700 mb-2">📅 운행일자</label>
+                  <input
+                    type="date"
+                    id="drive_date"
+                    value={driveDate}
+                    onChange={(e) => setDriveDate(e.target.value)}
+                    required
+                    className="block w-full px-4 py-3 rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-sm"
+                  />
+                </div>
+
+                {isClient ? (
+                  <>
+                    <div className="space-y-4 bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="text-lg">🚗</span>
+                        <h3 className="font-semibold text-gray-800">경로 정보</h3>
+                      </div>
+                      <AddressSearch
+                        label="🔵 출발지"
+                        onAddressSelect={(addr) => handleAddressSelect('departure', addr)}
+                      />
+                      <AddressSearch
+                        label="🔴 도착지"
+                        onAddressSelect={(addr) => handleAddressSelect('destination', addr)}
+                      />
+                    </div>
+
+                    {waypoints.length > 0 && (
+                      <div className="space-y-3 bg-amber-50 p-5 rounded-xl border border-amber-200">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-lg">📍</span>
+                          <h3 className="font-semibold text-gray-800">경유지</h3>
+                        </div>
+                        {waypoints.map((wp, index) => (
+                          <div key={wp.id} className="flex items-end gap-2">
+                            <div className="flex-grow">
+                              <AddressSearch
+                                label={`경유지 ${index + 1}`}
+                                onAddressSelect={(addr) => handleAddressSelect(`waypoint-${wp.id}`, addr)}
+                              />
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => removeWaypoint(wp.id)}
+                              className="mb-2 px-3 py-2 text-sm text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+                            >
+                              삭제
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      onClick={addWaypoint}
+                      className="w-full py-2.5 px-4 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors font-medium text-sm"
+                    >
+                      + 경유지 추가
+                    </button>
+                  </>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
+                    <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
+                  </div>
+                )}
+
+                <div>
+                  <label htmlFor="client_name" className="block text-sm font-semibold text-gray-700 mb-2">🏢 외근지 (업체명)</label>
+                  <input
+                    type="text"
+                    id="client_name"
+                    value={clientName}
+                    onChange={(e) => setClientName(e.target.value)}
+                    required
+                    placeholder="예: ㈜앤비젼"
+                    className="block w-full px-4 py-3 rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="distance" className="block text-sm font-semibold text-gray-700 mb-2">📏 운행거리 (km)</label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      id="distance"
+                      value={distance}
+                      onChange={(e) => setDistance(e.target.value)}
+                      required
+                      step="0.1"
+                      placeholder="자동 계산됩니다"
+                      className="block w-full px-4 py-3 rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-sm"
+                    />
+                    {loadingDistance && (
+                      <div className="absolute right-3 top-3">
+                        <div className="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="pt-6">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full flex justify-center items-center gap-2 py-4 px-4 border border-transparent rounded-xl shadow-lg text-base font-semibold text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 focus:outline-none focus:ring-4 focus:ring-green-300 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition-all"
+                  >
+                    {loading ? (
+                      <>
+                        <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div>
+                        저장 중...
+                      </>
+                    ) : (
+                      <>
+                        <span>💾</span>
+                        운행 기록 저장
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            {/* Map Section */}
+            <div className="relative h-full min-h-[600px] lg:min-h-[800px] bg-gray-100">
+              <div className="absolute top-4 left-4 right-4 z-10 bg-white/95 backdrop-blur-sm rounded-xl shadow-lg p-4 border border-gray-200">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <span className="text-xl">🗺️</span>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900">경로 미리보기</h3>
+                    <p className="text-xs text-gray-500">지도에서 경로를 확인하세요</p>
+                  </div>
+                </div>
+              </div>
+              {isClient ? (
+                <KakaoMap
+                  departure={departure}
+                  destination={destination}
+                  waypoints={waypoints.map(w => w.address).filter((a): a is Address => a !== null)}
+                  onDistanceCalculated={(d) => setDistance(d.toString())}
+                  setLoading={setLoadingDistance}
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex flex-col items-center justify-center">
+                  <div className="animate-spin h-12 w-12 border-4 border-blue-500 border-t-transparent rounded-full mb-4"></div>
+                  <p className="text-gray-600 font-medium">지도 로딩 중...</p>
+                </div>
+              )}
+            </div>
+          </div>
+          {error && (
+            <div className="p-4 bg-red-50 border-t border-red-200">
+              <p className="text-sm text-red-600 text-center">⚠️ {error}</p>
+            </div>
+          )}
+        </div>
+      </main>
+    </div>
+  );
+}
