@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { signInAdmin, signInEmployee, setCurrentUser } from '@/lib/auth';
+import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 
 export default function LoginPage() {
@@ -14,11 +15,28 @@ export default function LoginPage() {
   const [pin, setPin] = useState('');
 
   // 관리자 로그인
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState('gwp@envision.co.kr');
   const [password, setPassword] = useState('');
 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [employees, setEmployees] = useState<any[]>([]);
+
+  useEffect(() => {
+    loadEmployees();
+  }, []);
+
+  async function loadEmployees() {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('role', 'employee')
+      .order('name', { ascending: true });
+
+    if (!error && data) {
+      setEmployees(data);
+    }
+  }
 
   const handleEmployeeLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,7 +119,7 @@ export default function LoginPage() {
                   : 'bg-gray-100 text-gray-600'
               }`}
             >
-              👤 직원
+              👤 운전자
             </button>
             <button
               type="button"
@@ -128,17 +146,22 @@ export default function LoginPage() {
             <form onSubmit={handleEmployeeLogin} className="space-y-6">
               <div>
                 <label htmlFor="name" className="block text-base font-bold text-gray-700 mb-3">
-                  사용자 선택 <span className="text-red-500">*</span>
+                  운전자 선택 <span className="text-red-500">*</span>
                 </label>
-                <input
+                <select
                   id="name"
-                  type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
                   className="w-full px-5 py-4 border-2 border-gray-300 rounded-2xl focus:outline-none focus:ring-0 focus:border-blue-500 transition-all text-base bg-gray-50"
-                  placeholder="사용자를 선택하세요"
-                />
+                >
+                  <option value="">운전자를 선택하세요</option>
+                  {employees.map((emp) => (
+                    <option key={emp.id} value={emp.name}>
+                      {emp.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>
@@ -221,6 +244,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  autoComplete="off"
                   className="w-full px-5 py-4 border-2 border-gray-300 rounded-2xl focus:outline-none focus:ring-0 focus:border-blue-500 transition-all text-base bg-gray-50"
                   placeholder="비밀번호를 입력하세요"
                 />

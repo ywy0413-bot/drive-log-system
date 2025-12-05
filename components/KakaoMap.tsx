@@ -131,8 +131,8 @@ export default function KakaoMap({
       path.forEach((point: any) => bounds.extend(point));
       mapInstance.current.setBounds(bounds);
 
-      // 거리를 km 단위로 반환 (도로 거리 보정 계수 1.3 적용)
-      const roadDistance = totalDistance * 1.3;
+      // 거리를 km 단위로 반환 (도로 거리 보정 계수 1.4 적용)
+      const roadDistance = totalDistance * 1.4;
       onDistanceCalculated(parseFloat(roadDistance.toFixed(1)));
 
     } catch (error) {

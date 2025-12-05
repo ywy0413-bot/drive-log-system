@@ -127,13 +127,15 @@ export function clearCurrentUser() {
 export async function addEmployee(
   name: string,
   pin: string,
-  vehicleType: 'diesel' | 'gasoline' | 'electric'
+  vehicleType: 'diesel' | 'gasoline' | 'electric',
+  fuelEfficiency: number
 ) {
   const { data, error } = await supabase.from('users').insert([
     {
       name,
       pin,
       vehicle_type: vehicleType,
+      fuel_efficiency: fuelEfficiency,
       role: 'employee',
     },
   ]).select().single();

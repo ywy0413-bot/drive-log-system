@@ -11,7 +11,18 @@ import { Address } from '@/types';
 export default function NewRecordPage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
-  const [driveDate, setDriveDate] = useState(new Date().toISOString().split('T')[0]);
+
+  // 한국 시간 기준으로 오늘 날짜 설정
+  const getKoreanToday = () => {
+    const now = new Date();
+    const koreaTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
+    const year = koreaTime.getFullYear();
+    const month = String(koreaTime.getMonth() + 1).padStart(2, '0');
+    const day = String(koreaTime.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const [driveDate, setDriveDate] = useState(getKoreanToday());
   const [clientName, setClientName] = useState('');
   const [distance, setDistance] = useState('');
 
@@ -23,6 +34,7 @@ export default function NewRecordPage() {
   const [loading, setLoading] = useState(false);
   const [loadingDistance, setLoadingDistance] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const [submissionStatus, setSubmissionStatus] = useState<any>(null);
 
   useEffect(() => {
     const currentUser = getCurrentUser();
@@ -33,6 +45,30 @@ export default function NewRecordPage() {
     }
     setIsClient(true);
   }, [router]);
+
+  useEffect(() => {
+    if (user && driveDate) {
+      loadSubmissionStatus();
+    }
+  }, [user, driveDate]);
+
+  async function loadSubmissionStatus() {
+    const [year, month] = driveDate.split('-').map(Number);
+
+    const { data, error } = await supabase
+      .from('monthly_submissions')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('year', year)
+      .eq('month', month)
+      .single();
+
+    if (!error && data) {
+      setSubmissionStatus(data);
+    } else {
+      setSubmissionStatus(null);
+    }
+  }
 
   const handleAddressSelect = (type: string, address: Address) => {
     if (type === 'departure') setDeparture(address);
@@ -57,6 +93,18 @@ export default function NewRecordPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // 정산 상태 체크
+    if (submissionStatus?.status === 'completed') {
+      alert('정산이 완료되어 추가 및 수정이 불가능합니다. 추가 및 수정이 필요한 경우에는 담당자에게 문의 부탁드립니다.');
+      return;
+    }
+
+    if (submissionStatus?.status === 'pending') {
+      alert('정산중인 상태를 취소한 후 운행 기록을 수정해 주세요.');
+      return;
+    }
+
     if (!departure || !destination) {
       setError('출발지와 도착지를 모두 입력해주세요.');
       return;

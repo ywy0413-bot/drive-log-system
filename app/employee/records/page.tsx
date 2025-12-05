@@ -6,7 +6,13 @@ import { getCurrentUser } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 
-export default function RecordsPage() {
+export default function RecordsPage({
+  params,
+  searchParams,
+}: {
+  params?: any;
+  searchParams?: any;
+}) {
   const router = useRouter();
   const user = getCurrentUser();
 
@@ -15,6 +21,8 @@ export default function RecordsPage() {
   const [selectedMonth, setSelectedMonth] = useState(
     new Date().toISOString().slice(0, 7) // YYYY-MM
   );
+  const [submissionStatus, setSubmissionStatus] = useState<any>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -22,6 +30,7 @@ export default function RecordsPage() {
       return;
     }
     loadRecords();
+    loadSubmissionStatus();
   }, [selectedMonth]);
 
   async function loadRecords() {
@@ -55,6 +64,123 @@ export default function RecordsPage() {
     }
 
     setLoading(false);
+  }
+
+  async function loadSubmissionStatus() {
+    const [year, month] = selectedMonth.split('-').map(Number);
+
+    const { data, error } = await supabase
+      .from('monthly_submissions')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('year', year)
+      .eq('month', month)
+      .single();
+
+    if (!error && data) {
+      setSubmissionStatus(data);
+    } else {
+      setSubmissionStatus(null);
+    }
+  }
+
+  async function handleSubmit() {
+    if (!confirm('이번 달 운행 기록을 제출하시겠습니까?')) {
+      return;
+    }
+
+    setSubmitting(true);
+
+    const [year, month] = selectedMonth.split('-').map(Number);
+
+    const { data, error } = await supabase
+      .from('monthly_submissions')
+      .insert({
+        user_id: user.id,
+        year,
+        month,
+        status: 'pending',
+      })
+      .select()
+      .single();
+
+    if (error) {
+      alert('제출에 실패했습니다: ' + error.message);
+      setSubmitting(false);
+      return;
+    }
+
+    alert('운행 기록이 제출되었습니다!');
+    setSubmissionStatus(data);
+    setSubmitting(false);
+  }
+
+  async function handleCancelSubmission() {
+    if (!confirm('제출을 취소하시겠습니까?')) {
+      return;
+    }
+
+    setSubmitting(true);
+
+    const { error } = await supabase
+      .from('monthly_submissions')
+      .delete()
+      .eq('id', submissionStatus.id);
+
+    if (error) {
+      alert('제출 취소에 실패했습니다: ' + error.message);
+      setSubmitting(false);
+      return;
+    }
+
+    alert('제출이 취소되었습니다.');
+    setSubmissionStatus(null);
+    setSubmitting(false);
+  }
+
+  async function handleDeleteRecord(recordId: string) {
+    // 정산 상태 체크
+    if (submissionStatus?.status === 'completed') {
+      alert('정산이 완료되어 추가 및 수정이 불가능합니다. 추가 및 수정이 필요한 경우에는 담당자에게 문의 부탁드립니다.');
+      return;
+    }
+
+    if (submissionStatus?.status === 'pending') {
+      alert('정산중인 상태를 취소한 후 운행 기록을 수정해 주세요.');
+      return;
+    }
+
+    if (!confirm('이 운행 기록을 삭제하시겠습니까?')) {
+      return;
+    }
+
+    const { error } = await supabase
+      .from('drive_records')
+      .delete()
+      .eq('id', recordId);
+
+    if (error) {
+      alert('삭제에 실패했습니다: ' + error.message);
+      return;
+    }
+
+    alert('운행 기록이 삭제되었습니다.');
+    loadRecords(); // 목록 새로고침
+  }
+
+  function handleNewRecordClick(e: React.MouseEvent) {
+    // 정산 상태 체크
+    if (submissionStatus?.status === 'completed') {
+      e.preventDefault();
+      alert('정산이 완료되어 추가 및 수정이 불가능합니다. 추가 및 수정이 필요한 경우에는 담당자에게 문의 부탁드립니다.');
+      return;
+    }
+
+    if (submissionStatus?.status === 'pending') {
+      e.preventDefault();
+      alert('정산중인 상태를 취소한 후 운행 기록을 수정해 주세요.');
+      return;
+    }
   }
 
   const totalDistance = records.reduce((sum, r) => sum + parseFloat(r.distance || 0), 0);
@@ -105,6 +231,51 @@ export default function RecordsPage() {
               </div>
             </div>
           </div>
+
+          {/* 정산 상태 및 제출 버튼 */}
+          <div className="mt-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-6 border-t border-gray-200">
+            <div>
+              <p className="text-sm font-medium text-gray-700 mb-1">정산 상태</p>
+              {submissionStatus ? (
+                <div className="flex flex-col gap-2">
+                  <span
+                    className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${
+                      submissionStatus.status === 'pending'
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : 'bg-green-100 text-green-800'
+                    }`}
+                  >
+                    {submissionStatus.status === 'pending' ? '⏳ 정산중' : '✓ 정산완료'}
+                  </span>
+                  {submissionStatus.status === 'completed' && (
+                    <p className="text-sm text-gray-600">정산이 완료되어 수정이 불가능합니다</p>
+                  )}
+                </div>
+              ) : (
+                <span className="text-gray-500 text-sm">미제출</span>
+              )}
+            </div>
+
+            {!submissionStatus && (
+              <button
+                onClick={handleSubmit}
+                disabled={submitting || records.length === 0}
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium shadow-sm"
+              >
+                {submitting ? '제출 중...' : '📝 운행기록 제출'}
+              </button>
+            )}
+
+            {submissionStatus && submissionStatus.status === 'pending' && (
+              <button
+                onClick={handleCancelSubmission}
+                disabled={submitting}
+                className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium shadow-sm"
+              >
+                {submitting ? '취소 중...' : '🗑️ 제출 취소'}
+              </button>
+            )}
+          </div>
         </div>
 
         {/* 운행 기록 목록 */}
@@ -116,6 +287,7 @@ export default function RecordsPage() {
               <p className="mb-4">이번 달 운행 기록이 없습니다.</p>
               <Link
                 href="/employee/new-record"
+                onClick={handleNewRecordClick}
                 className="inline-block bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700"
               >
                 새 운행 기록 작성
@@ -143,6 +315,9 @@ export default function RecordsPage() {
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                       상태
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      작업
                     </th>
                   </tr>
                 </thead>
@@ -181,6 +356,14 @@ export default function RecordsPage() {
                             : '정산완료'}
                         </span>
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <button
+                          onClick={() => handleDeleteRecord(record.id)}
+                          className="text-red-600 hover:text-red-800 font-medium transition-colors"
+                        >
+                          삭제
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -199,6 +382,7 @@ export default function RecordsPage() {
           </Link>
           <Link
             href="/employee/new-record"
+            onClick={handleNewRecordClick}
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
           >
             + 새 운행 기록
