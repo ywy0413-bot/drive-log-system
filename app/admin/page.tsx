@@ -75,7 +75,7 @@ export default function AdminPage() {
       .from('users')
       .select('*')
       .eq('role', 'employee')
-      .order('created_at', { ascending: false });
+      .order('name', { ascending: true });
 
     if (!error && data) {
       setEmployees(data);
@@ -809,7 +809,7 @@ export default function AdminPage() {
           )}
 
           {/* 운전자 목록 */}
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto max-h-96 overflow-y-auto border border-gray-200 rounded-lg">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>

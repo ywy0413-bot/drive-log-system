@@ -225,14 +225,16 @@ export default function EmployeePage() {
             <h3 className="font-semibold mb-2">사용자 정보</h3>
             <div className="space-y-1 text-sm">
               <p><span className="font-medium">이름:</span> {user?.name}</p>
-              <p><span className="font-medium">이메일:</span> {user?.email}</p>
               <p><span className="font-medium">연료형태:</span> {
                 user?.vehicle_type === 'gasoline' ? '휘발유' :
                 user?.vehicle_type === 'diesel' ? '경유' : '전기'
               }</p>
-              <p><span className="font-medium">연비:</span> {
-                user?.fuel_efficiency?.toFixed(1) || '10.0'
-              } {user?.vehicle_type === 'electric' ? 'km/kWh' : 'km/L'}</p>
+              <p>
+                <span className="font-medium">연비:</span> {
+                  user?.fuel_efficiency?.toFixed(1) || '10.0'
+                } {user?.vehicle_type === 'electric' ? 'km/kWh' : 'km/L'}
+                <span className="text-xs text-gray-600 ml-1">(차량등록증 상 연비에 85% 적용)</span>
+              </p>
             </div>
           </div>
         </div>
