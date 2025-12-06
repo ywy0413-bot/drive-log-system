@@ -121,16 +121,16 @@ export default function EmployeePage() {
     <div className="min-h-screen bg-gray-50">
       {/* 헤더 */}
       <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">자가운전대장</h1>
-            <p className="text-sm text-gray-600">
+            <h1 className="text-xl md:text-2xl font-bold text-gray-900">자가운전대장</h1>
+            <p className="text-xs text-gray-600">
               {user?.name}님 환영합니다
             </p>
           </div>
           <button
             onClick={handleSignOut}
-            className="px-4 py-2 text-sm bg-gray-200 hover:bg-gray-300 rounded-md transition-colors"
+            className="px-3 py-1.5 text-xs bg-gray-200 hover:bg-gray-300 rounded-md transition-colors"
           >
             로그아웃
           </button>
@@ -138,41 +138,41 @@ export default function EmployeePage() {
       </header>
 
       {/* 메인 컨텐츠 */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">운행 기록 관리</h2>
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4">
+        <div className="bg-white rounded-lg shadow p-4">
+          <h2 className="text-base md:text-lg font-semibold mb-3">운행 기록 관리</h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <Link
               href="/employee/new-record"
-              className="p-4 border border-gray-200 rounded-lg hover:border-blue-500 transition-colors cursor-pointer"
+              className="p-3 border border-gray-200 rounded-lg hover:border-blue-500 transition-colors cursor-pointer"
             >
-              <h3 className="font-semibold text-lg mb-2">새 운행 기록</h3>
-              <p className="text-sm text-gray-600">오늘의 운행 기록을 등록하세요</p>
+              <h3 className="font-semibold text-sm mb-1">새 운행 기록</h3>
+              <p className="text-xs text-gray-600">오늘의 운행 기록을 등록하세요</p>
             </Link>
 
             <Link
               href="/employee/records"
-              className="p-4 border border-gray-200 rounded-lg hover:border-blue-500 transition-colors cursor-pointer"
+              className="p-3 border border-gray-200 rounded-lg hover:border-blue-500 transition-colors cursor-pointer"
             >
-              <h3 className="font-semibold text-lg mb-2">운행 기록 조회 및 제출</h3>
-              <p className="text-sm text-gray-600">지난 운행 기록을 확인하고 제출하세요</p>
+              <h3 className="font-semibold text-sm mb-1">운행 기록 조회 및 제출</h3>
+              <p className="text-xs text-gray-600">지난 운행 기록을 확인하고 제출하세요</p>
             </Link>
 
-            <div className="p-4 border border-gray-200 rounded-lg">
-              <h3 className="font-semibold text-lg mb-3">월별 정산 현황</h3>
-              <p className="text-sm text-gray-600 mb-2">최근 6개월 정산 추이</p>
-              <p className="text-xs text-blue-600 mb-3">💡 정산 금액에는 감가 상각비용이 포함되어 있습니다</p>
-              <div className="space-y-2">
+            <div className="p-3 border border-gray-200 rounded-lg">
+              <h3 className="font-semibold text-sm mb-2">월별 정산 현황</h3>
+              <p className="text-xs text-gray-600 mb-1.5">최근 6개월 정산 추이</p>
+              <p className="text-xs text-blue-600 mb-2">💡 정산 금액에는 감가 상각비용이 포함되어 있습니다</p>
+              <div className="space-y-1.5">
                 {monthlyTrends.map((trend) => (
-                  <div key={`${trend.year}-${trend.month}`} className="flex justify-between items-center text-sm py-2 border-b border-gray-100 last:border-0">
+                  <div key={`${trend.year}-${trend.month}`} className="flex justify-between items-center text-xs py-1.5 border-b border-gray-100 last:border-0">
                     <span className="font-medium text-gray-700">
                       {trend.year}년 {trend.month}월
                     </span>
                     {trend.submission ? (
-                      <div className="flex flex-col items-end gap-1">
+                      <div className="flex flex-col items-end gap-0.5">
                         <span
-                          className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                          className={`px-1.5 py-0.5 rounded-full text-xs font-semibold ${
                             trend.submission.status === 'pending'
                               ? 'bg-yellow-100 text-yellow-800'
                               : 'bg-green-100 text-green-800'
@@ -199,14 +199,14 @@ export default function EmployeePage() {
 
             <Link
               href="/employee/records"
-              className="p-4 border border-gray-200 rounded-lg hover:border-blue-500 transition-colors cursor-pointer"
+              className="p-3 border border-gray-200 rounded-lg hover:border-blue-500 transition-colors cursor-pointer"
             >
-              <h3 className="font-semibold text-lg mb-2">정산 내역</h3>
-              <p className="text-sm text-gray-600 mb-2">이번 달 운행기록 제출 상태</p>
+              <h3 className="font-semibold text-sm mb-1">정산 내역</h3>
+              <p className="text-xs text-gray-600 mb-1.5">이번 달 운행기록 제출 상태</p>
               {currentMonthSubmission ? (
-                <div className="mt-2">
+                <div className="mt-1.5">
                   <span
-                    className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
+                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${
                       currentMonthSubmission.status === 'pending'
                         ? 'bg-yellow-100 text-yellow-800'
                         : 'bg-green-100 text-green-800'
@@ -216,14 +216,14 @@ export default function EmployeePage() {
                   </span>
                 </div>
               ) : (
-                <p className="text-xs text-red-600 mt-2">아직 제출하지 않았습니다</p>
+                <p className="text-xs text-red-600 mt-1.5">아직 제출하지 않았습니다</p>
               )}
             </Link>
           </div>
 
-          <div className="mt-8 p-4 bg-blue-50 rounded-lg">
-            <h3 className="font-semibold mb-2">사용자 정보</h3>
-            <div className="space-y-1 text-sm">
+          <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+            <h3 className="font-semibold text-sm mb-1.5">사용자 정보</h3>
+            <div className="space-y-0.5 text-xs">
               <p><span className="font-medium">이름:</span> {user?.name}</p>
               <p><span className="font-medium">연료형태:</span> {
                 user?.vehicle_type === 'gasoline' ? '휘발유' :

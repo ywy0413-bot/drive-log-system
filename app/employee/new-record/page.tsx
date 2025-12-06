@@ -142,53 +142,53 @@ export default function NewRecordPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
       <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto py-5 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+        <div className="max-w-7xl mx-auto py-3 px-3 sm:px-6 lg:px-8 flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">새 운행 기록</h1>
-            <p className="text-sm text-gray-500 mt-1">출발지와 도착지를 선택하고 운행 정보를 입력하세요</p>
+            <h1 className="text-xl md:text-2xl font-bold text-gray-900">새 운행 기록</h1>
+            <p className="text-xs text-gray-500 mt-0.5">출발지와 도착지를 선택하고 운행 정보를 입력하세요</p>
           </div>
           <button
             onClick={() => router.back()}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
           >
-            <span>←</span> 뒤로가기
+            <span>←</span> 뒤로
           </button>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+      <main className="max-w-7xl mx-auto py-4 px-3 sm:px-6 lg:px-8">
+        <div className="bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
             {/* Form Section */}
-            <div className="p-8 bg-gradient-to-br from-gray-50 to-white">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <span className="text-xl">📝</span>
+            <div className="p-4 md:p-6 bg-gradient-to-br from-gray-50 to-white">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <span className="text-lg">📝</span>
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">운행 정보 입력</h2>
+                  <h2 className="text-base md:text-lg font-bold text-gray-900">운행 정보 입력</h2>
                   <p className="text-xs text-gray-500">모든 항목을 입력해주세요</p>
                 </div>
               </div>
-              <form onSubmit={handleSubmit} className="space-y-5">
+              <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label htmlFor="drive_date" className="block text-sm font-semibold text-gray-700 mb-2">📅 운행일자</label>
+                  <label htmlFor="drive_date" className="block text-xs font-semibold text-gray-700 mb-1.5">📅 운행일자</label>
                   <input
                     type="date"
                     id="drive_date"
                     value={driveDate}
                     onChange={(e) => setDriveDate(e.target.value)}
                     required
-                    className="block w-full px-4 py-3 rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-sm"
+                    className="block w-full px-3 py-2 rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-sm"
                   />
                 </div>
 
                 {isClient ? (
                   <>
-                    <div className="space-y-4 bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-                      <div className="flex items-center gap-2 mb-3">
-                        <span className="text-lg">🚗</span>
-                        <h3 className="font-semibold text-gray-800">경로 정보</h3>
+                    <div className="space-y-3 bg-white p-3 rounded-xl border border-gray-200 shadow-sm">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-base">🚗</span>
+                        <h3 className="text-sm font-semibold text-gray-800">경로 정보</h3>
                       </div>
                       <AddressSearch
                         label="🔵 출발지"
@@ -201,10 +201,10 @@ export default function NewRecordPage() {
                     </div>
 
                     {waypoints.length > 0 && (
-                      <div className="space-y-3 bg-amber-50 p-5 rounded-xl border border-amber-200">
+                      <div className="space-y-2 bg-amber-50 p-3 rounded-xl border border-amber-200">
                         <div className="flex items-center gap-2 mb-2">
-                          <span className="text-lg">📍</span>
-                          <h3 className="font-semibold text-gray-800">경유지</h3>
+                          <span className="text-base">📍</span>
+                          <h3 className="text-sm font-semibold text-gray-800">경유지</h3>
                         </div>
                         {waypoints.map((wp, index) => (
                           <div key={wp.id} className="flex items-end gap-2">
@@ -217,7 +217,7 @@ export default function NewRecordPage() {
                             <button
                               type="button"
                               onClick={() => removeWaypoint(wp.id)}
-                              className="mb-2 px-3 py-2 text-sm text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+                              className="mb-2 px-2 py-1.5 text-xs text-red-600 hover:bg-red-100 rounded-lg transition-colors"
                             >
                               삭제
                             </button>
@@ -228,7 +228,7 @@ export default function NewRecordPage() {
                     <button
                       type="button"
                       onClick={addWaypoint}
-                      className="w-full py-2.5 px-4 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors font-medium text-sm"
+                      className="w-full py-2 px-3 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors font-medium text-xs"
                     >
                       + 경유지 추가
                     </button>
@@ -241,7 +241,7 @@ export default function NewRecordPage() {
                 )}
 
                 <div>
-                  <label htmlFor="client_name" className="block text-sm font-semibold text-gray-700 mb-2">🏢 외근지 (업체명)</label>
+                  <label htmlFor="client_name" className="block text-xs font-semibold text-gray-700 mb-1.5">🏢 외근지 (업체명)</label>
                   <input
                     type="text"
                     id="client_name"
@@ -249,12 +249,12 @@ export default function NewRecordPage() {
                     onChange={(e) => setClientName(e.target.value)}
                     required
                     placeholder="예: ㈜앤비젼"
-                    className="block w-full px-4 py-3 rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-sm"
+                    className="block w-full px-3 py-2 rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-sm"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="distance" className="block text-sm font-semibold text-gray-700 mb-2">📏 운행거리 (km)</label>
+                  <label htmlFor="distance" className="block text-xs font-semibold text-gray-700 mb-1.5">📏 운행거리 (km)</label>
                   <div className="relative">
                     <input
                       type="number"
@@ -264,25 +264,25 @@ export default function NewRecordPage() {
                       required
                       step="0.1"
                       placeholder="자동 계산됩니다"
-                      className="block w-full px-4 py-3 rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-sm"
+                      className="block w-full px-3 py-2 rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-sm"
                     />
                     {loadingDistance && (
-                      <div className="absolute right-3 top-3">
-                        <div className="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                      <div className="absolute right-2 top-2">
+                        <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
                       </div>
                     )}
                   </div>
                 </div>
 
-                <div className="pt-6">
+                <div className="pt-3">
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full flex justify-center items-center gap-2 py-4 px-4 border border-transparent rounded-xl shadow-lg text-base font-semibold text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 focus:outline-none focus:ring-4 focus:ring-green-300 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition-all"
+                    className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-xl shadow-lg text-sm font-semibold text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 focus:outline-none focus:ring-4 focus:ring-green-300 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition-all"
                   >
                     {loading ? (
                       <>
-                        <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div>
+                        <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
                         저장 중...
                       </>
                     ) : (
@@ -297,14 +297,14 @@ export default function NewRecordPage() {
             </div>
 
             {/* Map Section */}
-            <div className="relative h-full min-h-[600px] lg:min-h-[800px] bg-gray-100">
-              <div className="absolute top-4 left-4 right-4 z-10 bg-white/95 backdrop-blur-sm rounded-xl shadow-lg p-4 border border-gray-200">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <span className="text-xl">🗺️</span>
+            <div className="relative h-full min-h-[400px] lg:min-h-[600px] bg-gray-100">
+              <div className="absolute top-2 left-2 right-2 z-10 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg p-2 border border-gray-200">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <span className="text-base">🗺️</span>
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900">경로 미리보기</h3>
+                    <h3 className="text-sm font-bold text-gray-900">경로 미리보기</h3>
                     <p className="text-xs text-gray-500">지도에서 경로를 확인하세요</p>
                   </div>
                 </div>
