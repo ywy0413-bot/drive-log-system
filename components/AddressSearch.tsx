@@ -13,6 +13,7 @@ export default function AddressSearch({ label, onAddressSelect }: AddressSearchP
   const [results, setResults] = useState<Address[]>([]);
   const [showResults, setShowResults] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
+  const [noResults, setNoResults] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -29,6 +30,7 @@ export default function AddressSearch({ label, onAddressSelect }: AddressSearchP
   const searchAddress = async (keyword: string) => {
     if (!keyword || keyword.trim().length < 2) {
       setResults([]);
+      setNoResults(false);
       return;
     }
 
@@ -47,11 +49,12 @@ export default function AddressSearch({ label, onAddressSelect }: AddressSearchP
       return;
     }
 
-    // 장소 검색 (업체명, 건물명, 랜드마크 등)
+    // 1차: 장소 검색 (업체명, 건물명, 랜드마크 등 - 한글/영문 모두 지원)
     const places = new window.kakao.maps.services.Places();
 
     places.keywordSearch(keyword, (result: any[], status: any) => {
-      if (status === window.kakao.maps.services.Status.OK) {
+      if (status === window.kakao.maps.services.Status.OK && result.length > 0) {
+        console.log('✅ 장소 검색 성공:', result.length, '개 결과');
         const addresses: Address[] = result.map((item) => ({
           address_name: item.address_name,
           road_address_name: item.road_address_name || item.address_name,
@@ -61,11 +64,14 @@ export default function AddressSearch({ label, onAddressSelect }: AddressSearchP
         }));
         setResults(addresses);
         setShowResults(true);
+        setNoResults(false);
       } else {
-        // 장소 검색 실패 시 주소 검색 시도
+        console.log('ℹ️ 장소 검색 결과 없음, 주소 검색 시도...');
+        // 2차: 주소 검색 시도
         const geocoder = new window.kakao.maps.services.Geocoder();
         geocoder.addressSearch(keyword, (result: any[], status: any) => {
-          if (status === window.kakao.maps.services.Status.OK) {
+          if (status === window.kakao.maps.services.Status.OK && result.length > 0) {
+            console.log('✅ 주소 검색 성공:', result.length, '개 결과');
             const addresses: Address[] = result.map((item) => ({
               address_name: item.address_name,
               road_address_name: item.road_address?.address_name,
@@ -74,8 +80,12 @@ export default function AddressSearch({ label, onAddressSelect }: AddressSearchP
             }));
             setResults(addresses);
             setShowResults(true);
+            setNoResults(false);
           } else {
+            console.log('❌ 검색 결과 없음:', keyword);
             setResults([]);
+            setShowResults(true);
+            setNoResults(true);
           }
         });
       }
@@ -136,6 +146,24 @@ export default function AddressSearch({ label, onAddressSelect }: AddressSearchP
                 )}
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {showResults && noResults && query.length >= 2 && (
+        <div className="absolute z-20 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg p-4">
+          <div className="text-center text-gray-500">
+            <p className="text-sm font-medium mb-2">🔍 검색 결과가 없습니다</p>
+            <p className="text-xs text-gray-400 mb-3">"{query}"에 대한 결과를 찾을 수 없습니다</p>
+            <div className="text-left bg-blue-50 rounded-lg p-3 text-xs">
+              <p className="font-semibold text-blue-700 mb-1">💡 검색 팁:</p>
+              <ul className="space-y-1 text-gray-600">
+                <li>• 회사명 전체 입력: "㈜기가비스", "기가비스코리아"</li>
+                <li>• 영문명 시도: "GIGAVIS"</li>
+                <li>• 주소 직접 입력: "서울시 강남구..."</li>
+                <li>• 주변 건물명이나 랜드마크 검색</li>
+              </ul>
+            </div>
           </div>
         </div>
       )}
