@@ -20,6 +20,7 @@ export default function AdminPage() {
     gasoline_price: '',
     diesel_price: '',
     electric_price: '',
+    depreciation_cost: '',
   });
   const [fuelPricesLoading, setFuelPricesLoading] = useState(false);
   const [fuelPricesSaving, setFuelPricesSaving] = useState(false);
@@ -170,12 +171,15 @@ export default function AdminPage() {
 
     const totalDistance = records?.reduce((sum, r) => sum + parseFloat(r.distance || 0), 0) || 0;
 
+    // 감가상각비 가져오기 (월별 설정값 사용)
+    const depreciationCostPerKm = parseFloat(fuelPriceData.depreciation_cost) || 140;
+
     // 새로운 정산 계산 로직
     // 연료비 = (총운행거리 / 연비) × 리터당가격 (또는 kWh당가격)
     const fuelCost = Math.round((totalDistance / fuelEfficiency) * fuelPrice);
 
-    // 감가상각비 = 총운행거리 × 140원/km
-    const depreciationCost = Math.round(totalDistance * 140);
+    // 감가상각비 = 총운행거리 × 월별 감가상각비/km
+    const depreciationCost = Math.round(totalDistance * depreciationCostPerKm);
 
     // 정산금액 = 연료비 + 감가상각비
     const settlementAmount = fuelCost + depreciationCost;
@@ -331,9 +335,12 @@ export default function AdminPage() {
 
         const totalDistance = records?.reduce((sum, r) => sum + parseFloat(r.distance || 0), 0) || 0;
 
+        // 감가상각비 가져오기 (월별 설정값 사용)
+        const depreciationCostPerKm = parseFloat(fuelPriceData.depreciation_cost) || 140;
+
         // 정산 금액 계산
         const fuelCost = Math.round((totalDistance / fuelEfficiency) * fuelPrice);
-        const depreciationCost = Math.round(totalDistance * 140);
+        const depreciationCost = Math.round(totalDistance * depreciationCostPerKm);
         const settlementAmount = fuelCost + depreciationCost;
 
         // 정산 완료 처리
@@ -495,6 +502,7 @@ export default function AdminPage() {
         gasoline_price: data.gasoline_price.toString(),
         diesel_price: data.diesel_price.toString(),
         electric_price: data.electric_price.toString(),
+        depreciation_cost: data.depreciation_cost?.toString() || '140',
       });
     } else {
       // 데이터가 없으면 빈 값으로 초기화
@@ -502,6 +510,7 @@ export default function AdminPage() {
         gasoline_price: '',
         diesel_price: '',
         electric_price: '',
+        depreciation_cost: '140',
       });
     }
 
@@ -509,8 +518,8 @@ export default function AdminPage() {
   }
 
   async function handleSaveFuelPrices() {
-    if (!fuelPrices.gasoline_price || !fuelPrices.diesel_price || !fuelPrices.electric_price) {
-      alert('모든 연료 가격을 입력해주세요.');
+    if (!fuelPrices.gasoline_price || !fuelPrices.diesel_price || !fuelPrices.electric_price || !fuelPrices.depreciation_cost) {
+      alert('모든 연료 가격과 감가상각비를 입력해주세요.');
       return;
     }
 
@@ -525,6 +534,7 @@ export default function AdminPage() {
         gasoline_price: parseFloat(fuelPrices.gasoline_price),
         diesel_price: parseFloat(fuelPrices.diesel_price),
         electric_price: parseFloat(fuelPrices.electric_price),
+        depreciation_cost: parseFloat(fuelPrices.depreciation_cost),
       }, {
         onConflict: 'year,month'
       });
@@ -885,7 +895,7 @@ export default function AdminPage() {
             <div className="text-center py-4 text-gray-500">로딩 중...</div>
           ) : (
             <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     휘발유 (원/L)
@@ -925,6 +935,20 @@ export default function AdminPage() {
                     onChange={(e) => setFuelPrices({ ...fuelPrices, electric_price: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="예: 300.00"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    감가상각비 (원/km)
+                  </label>
+                  <input
+                    type="number"
+                    step="1"
+                    value={fuelPrices.depreciation_cost}
+                    onChange={(e) => setFuelPrices({ ...fuelPrices, depreciation_cost: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="예: 140"
                   />
                 </div>
               </div>

@@ -162,7 +162,7 @@ export default function EmployeePage() {
             <div className="p-4 border border-gray-200 rounded-lg">
               <h3 className="font-semibold text-lg mb-3">월별 정산 현황</h3>
               <p className="text-sm text-gray-600 mb-2">최근 6개월 정산 추이</p>
-              <p className="text-xs text-blue-600 mb-3">💡 정산 금액에는 1km당 140원의 감가 상각비용이 포함되어 있습니다</p>
+              <p className="text-xs text-blue-600 mb-3">💡 정산 금액에는 감가 상각비용이 포함되어 있습니다</p>
               <div className="space-y-2">
                 {monthlyTrends.map((trend) => (
                   <div key={`${trend.year}-${trend.month}`} className="flex justify-between items-center text-sm py-2 border-b border-gray-100 last:border-0">
