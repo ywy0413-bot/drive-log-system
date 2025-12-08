@@ -49,7 +49,7 @@ export async function signUp(
   email: string,
   password: string,
   name: string,
-  vehicleType: 'diesel' | 'gasoline' | 'electric'
+  vehicleType: 'diesel' | 'gasoline' | 'lpg' | 'electric'
 ) {
   // 1. Supabase Auth에 회원가입
   const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -127,7 +127,7 @@ export function clearCurrentUser() {
 export async function addEmployee(
   name: string,
   pin: string,
-  vehicleType: 'diesel' | 'gasoline' | 'electric',
+  vehicleType: 'diesel' | 'gasoline' | 'lpg' | 'electric',
   fuelEfficiency: number
 ) {
   const { data, error } = await supabase.from('users').insert([
