@@ -2,10 +2,21 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Address } from '@/types';
+import { getCurrentUser } from '@/lib/auth';
+import { supabase } from '@/lib/supabase';
 
 interface AddressSearchProps {
   label: string;
   onAddressSelect: (address: Address) => void;
+}
+
+interface FavoritePlace {
+  id: string;
+  place_name: string;
+  address_name: string;
+  road_address_name: string;
+  x: string;
+  y: string;
 }
 
 export default function AddressSearch({ label, onAddressSelect }: AddressSearchProps) {
@@ -14,7 +25,10 @@ export default function AddressSearch({ label, onAddressSelect }: AddressSearchP
   const [showResults, setShowResults] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [noResults, setNoResults] = useState(false);
+  const [favorites, setFavorites] = useState<FavoritePlace[]>([]);
+  const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
   const searchRef = useRef<HTMLDivElement>(null);
+  const user = getCurrentUser();
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -26,6 +40,72 @@ export default function AddressSearch({ label, onAddressSelect }: AddressSearchP
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      loadFavorites();
+    }
+  }, [user]);
+
+  async function loadFavorites() {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from('favorite_places')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+
+    if (!error && data) {
+      setFavorites(data);
+      const ids = new Set(data.map(f => `${f.place_name}-${f.address_name}`));
+      setFavoriteIds(ids);
+    }
+  }
+
+  async function toggleFavorite(address: Address, isFavorite: boolean) {
+    if (!user) return;
+
+    const favoriteKey = `${address.place_name || ''}-${address.address_name}`;
+
+    if (isFavorite) {
+      // 즐겨찾기에서 제거
+      const favorite = favorites.find(f => `${f.place_name}-${f.address_name}` === favoriteKey);
+      if (favorite) {
+        await supabase.from('favorite_places').delete().eq('id', favorite.id);
+        setFavorites(favorites.filter(f => f.id !== favorite.id));
+        const newIds = new Set(favoriteIds);
+        newIds.delete(favoriteKey);
+        setFavoriteIds(newIds);
+      }
+    } else {
+      // 즐겨찾기에 추가
+      const { data, error } = await supabase
+        .from('favorite_places')
+        .insert({
+          user_id: user.id,
+          place_name: address.place_name || '',
+          address_name: address.address_name,
+          road_address_name: address.road_address_name || address.address_name,
+          x: address.x,
+          y: address.y,
+        })
+        .select()
+        .single();
+
+      if (!error && data) {
+        setFavorites([data, ...favorites]);
+        const newIds = new Set(favoriteIds);
+        newIds.add(favoriteKey);
+        setFavoriteIds(newIds);
+      }
+    }
+  }
+
+  function isFavorite(address: Address): boolean {
+    const favoriteKey = `${address.place_name || ''}-${address.address_name}`;
+    return favoriteIds.has(favoriteKey);
+  }
 
   const searchAddress = async (keyword: string) => {
     if (!keyword || keyword.trim().length < 2) {
@@ -95,7 +175,12 @@ export default function AddressSearch({ label, onAddressSelect }: AddressSearchP
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setQuery(value);
-    searchAddress(value);
+    if (value.trim().length >= 2) {
+      searchAddress(value);
+    } else {
+      setResults([]);
+      setNoResults(false);
+    }
   };
 
   const handleSelectAddress = (address: Address) => {
@@ -103,6 +188,11 @@ export default function AddressSearch({ label, onAddressSelect }: AddressSearchP
     setQuery(address.road_address_name || address.address_name);
     setShowResults(false);
     onAddressSelect(address);
+  };
+
+  const handleFavoriteClick = (e: React.MouseEvent, address: Address) => {
+    e.stopPropagation();
+    toggleFavorite(address, isFavorite(address));
   };
 
   return (
@@ -115,37 +205,103 @@ export default function AddressSearch({ label, onAddressSelect }: AddressSearchP
         value={query}
         onChange={handleInputChange}
         onFocus={() => {
-          if (results.length > 0) setShowResults(true);
+          if (results.length > 0 || favorites.length > 0) setShowResults(true);
         }}
         placeholder="업체명, 건물명 또는 주소를 입력하세요"
         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-sm shadow-sm"
       />
 
-      {showResults && results.length > 0 && (
-        <div className="absolute z-20 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-2xl max-h-72 overflow-auto">
+      {showResults && (favorites.length > 0 || results.length > 0) && (
+        <div className="absolute z-20 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-2xl max-h-80 overflow-auto">
           <div className="p-2">
-            {results.map((address, index) => (
-              <div
-                key={index}
-                onClick={() => handleSelectAddress(address)}
-                className="px-4 py-3 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 cursor-pointer rounded-lg transition-all mb-1 last:mb-0 border border-transparent hover:border-blue-200"
-              >
-                {address.place_name && (
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <span className="text-blue-500">📍</span>
-                    <p className="text-sm font-bold text-blue-600">
-                      {address.place_name}
-                    </p>
-                  </div>
-                )}
-                <p className="text-sm font-medium text-gray-800 ml-6">
-                  {address.road_address_name || address.address_name}
-                </p>
-                {address.road_address_name && address.address_name !== address.road_address_name && (
-                  <p className="text-xs text-gray-500 ml-6 mt-0.5">{address.address_name}</p>
+            {/* 즐겨찾기 목록 */}
+            {favorites.length > 0 && query.trim().length < 2 && (
+              <div className="mb-2">
+                <div className="px-2 py-1 text-xs font-semibold text-gray-500 flex items-center gap-1">
+                  ⭐ 자주 가는 장소
+                </div>
+                {favorites.map((fav) => {
+                  const favAddress: Address = {
+                    place_name: fav.place_name,
+                    address_name: fav.address_name,
+                    road_address_name: fav.road_address_name,
+                    x: fav.x,
+                    y: fav.y,
+                  };
+                  return (
+                    <div
+                      key={fav.id}
+                      onClick={() => handleSelectAddress(favAddress)}
+                      className="px-4 py-3 hover:bg-gradient-to-r hover:from-yellow-50 hover:to-amber-50 cursor-pointer rounded-lg transition-all mb-1 border border-transparent hover:border-yellow-200 relative group"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          {fav.place_name && (
+                            <div className="flex items-center gap-2 mb-1.5">
+                              <span className="text-yellow-500">⭐</span>
+                              <p className="text-sm font-bold text-gray-800">
+                                {fav.place_name}
+                              </p>
+                            </div>
+                          )}
+                          <p className="text-sm font-medium text-gray-700 ml-6">
+                            {fav.road_address_name || fav.address_name}
+                          </p>
+                        </div>
+                        <button
+                          onClick={(e) => handleFavoriteClick(e, favAddress)}
+                          className="ml-2 p-1.5 hover:bg-yellow-100 rounded-full transition-colors"
+                          title="즐겨찾기 제거"
+                        >
+                          <span className="text-lg">⭐</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+                {results.length > 0 && (
+                  <div className="border-t border-gray-200 my-2"></div>
                 )}
               </div>
-            ))}
+            )}
+
+            {/* 검색 결과 */}
+            {results.map((address, index) => {
+              const isAddressFavorite = isFavorite(address);
+              return (
+                <div
+                  key={index}
+                  onClick={() => handleSelectAddress(address)}
+                  className="px-4 py-3 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 cursor-pointer rounded-lg transition-all mb-1 last:mb-0 border border-transparent hover:border-blue-200 relative group"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      {address.place_name && (
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <span className="text-blue-500">📍</span>
+                          <p className="text-sm font-bold text-blue-600">
+                            {address.place_name}
+                          </p>
+                        </div>
+                      )}
+                      <p className="text-sm font-medium text-gray-800 ml-6">
+                        {address.road_address_name || address.address_name}
+                      </p>
+                      {address.road_address_name && address.address_name !== address.road_address_name && (
+                        <p className="text-xs text-gray-500 ml-6 mt-0.5">{address.address_name}</p>
+                      )}
+                    </div>
+                    <button
+                      onClick={(e) => handleFavoriteClick(e, address)}
+                      className="ml-2 p-1.5 hover:bg-gray-100 rounded-full transition-colors"
+                      title={isAddressFavorite ? "즐겨찾기 제거" : "즐겨찾기 추가"}
+                    >
+                      <span className="text-lg">{isAddressFavorite ? '⭐' : '☆'}</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
