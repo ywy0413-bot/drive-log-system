@@ -622,7 +622,240 @@ export default function AdminPage() {
 
       {/* 메인 컨텐츠 */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* 연료 가격 관리 */}
         <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-xl font-semibold mb-6">월별 연료 가격 관리</h2>
+
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded text-blue-700 text-sm">
+            ℹ️ 선택한 월({selectedMonth})의 연료 단가를 입력하세요. 이 가격은 유류비 정산 계산에 사용됩니다.
+          </div>
+
+          {fuelPricesLoading ? (
+            <div className="text-center py-4 text-gray-500">로딩 중...</div>
+          ) : (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    휘발유 (원/L)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={fuelPrices.gasoline_price}
+                    onChange={(e) => setFuelPrices({ ...fuelPrices, gasoline_price: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="예: 1650.00"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    경유 (원/L)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={fuelPrices.diesel_price}
+                    onChange={(e) => setFuelPrices({ ...fuelPrices, diesel_price: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="예: 1500.00"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    LPG (원/L)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={fuelPrices.lpg_price}
+                    onChange={(e) => setFuelPrices({ ...fuelPrices, lpg_price: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="예: 1200.00"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    전기 (원/kWh)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={fuelPrices.electric_price}
+                    onChange={(e) => setFuelPrices({ ...fuelPrices, electric_price: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="예: 300.00"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    감가상각비 (원/km)
+                  </label>
+                  <input
+                    type="number"
+                    step="1"
+                    value={fuelPrices.depreciation_cost}
+                    onChange={(e) => setFuelPrices({ ...fuelPrices, depreciation_cost: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="예: 140"
+                  />
+                </div>
+              </div>
+
+              <button
+                onClick={handleSaveFuelPrices}
+                disabled={fuelPricesSaving}
+                className="w-full md:w-auto px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium shadow-sm"
+              >
+                {fuelPricesSaving ? '저장 중...' : '💾 연료 가격 저장'}
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* 운행기록 제출 관리 */}
+        <div className="bg-white rounded-lg shadow p-6 mt-8">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+            <h2 className="text-xl font-semibold">운행기록 제출 관리</h2>
+
+            <div className="flex gap-3 items-center">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  조회 월
+                </label>
+                <input
+                  type="month"
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <button
+                onClick={handleBulkSettlement}
+                disabled={submissions.filter(s => s.status === 'pending').length === 0}
+                className="mt-6 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
+              >
+                💰 일괄 정산
+              </button>
+
+              <button
+                onClick={handleCloseMonth}
+                disabled={submissions.filter(s => s.status === 'pending').length === 0}
+                className="mt-6 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
+              >
+                🔒 정산 마감
+              </button>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    구성원
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    연료
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    제출 월
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    제출일
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    상태
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    정산 금액
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    작업
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {submissions.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                      제출된 운행기록이 없습니다.
+                    </td>
+                  </tr>
+                ) : (
+                  submissions.map((submission) => (
+                    <tr key={submission.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {submission.users?.name || '알 수 없음'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {submission.users?.vehicle_type === 'gasoline' ? '휘발유' :
+                         submission.users?.vehicle_type === 'diesel' ? '경유' :
+                         submission.users?.vehicle_type === 'lpg' ? 'LPG' :
+                         submission.users?.vehicle_type === 'electric' ? '전기' : '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {submission.year}년 {submission.month}월
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {new Date(submission.submitted_at).toLocaleDateString('ko-KR')}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span
+                          className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            submission.status === 'pending'
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-green-100 text-green-800'
+                          }`}
+                        >
+                          {submission.status === 'pending' ? '⏳ 정산중' : '✓ 정산완료'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {submission.settlement_amount ?
+                          `${submission.settlement_amount.toLocaleString()}원` :
+                          '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleViewRecords(submission)}
+                            className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-xs"
+                          >
+                            운행기록 보기
+                          </button>
+                          {submission.status === 'pending' ? (
+                            <button
+                              onClick={() => handleCompleteSubmission(submission.id)}
+                              className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors text-xs"
+                            >
+                              정산
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleCancelSubmission(submission.id)}
+                              className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors text-xs"
+                            >
+                              정산 취소
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* 운전자 관리 */}
+        <div className="bg-white rounded-lg shadow p-6 mt-8">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-semibold">운전자 관리</h2>
             <button
@@ -884,238 +1117,6 @@ export default function AdminPage() {
                           >
                             삭제
                           </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* 연료 가격 관리 */}
-        <div className="bg-white rounded-lg shadow p-6 mt-8">
-          <h2 className="text-xl font-semibold mb-6">월별 연료 가격 관리</h2>
-
-          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded text-blue-700 text-sm">
-            ℹ️ 선택한 월({selectedMonth})의 연료 단가를 입력하세요. 이 가격은 유류비 정산 계산에 사용됩니다.
-          </div>
-
-          {fuelPricesLoading ? (
-            <div className="text-center py-4 text-gray-500">로딩 중...</div>
-          ) : (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    휘발유 (원/L)
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={fuelPrices.gasoline_price}
-                    onChange={(e) => setFuelPrices({ ...fuelPrices, gasoline_price: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="예: 1650.00"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    경유 (원/L)
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={fuelPrices.diesel_price}
-                    onChange={(e) => setFuelPrices({ ...fuelPrices, diesel_price: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="예: 1500.00"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    LPG (원/L)
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={fuelPrices.lpg_price}
-                    onChange={(e) => setFuelPrices({ ...fuelPrices, lpg_price: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="예: 1200.00"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    전기 (원/kWh)
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={fuelPrices.electric_price}
-                    onChange={(e) => setFuelPrices({ ...fuelPrices, electric_price: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="예: 300.00"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    감가상각비 (원/km)
-                  </label>
-                  <input
-                    type="number"
-                    step="1"
-                    value={fuelPrices.depreciation_cost}
-                    onChange={(e) => setFuelPrices({ ...fuelPrices, depreciation_cost: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="예: 140"
-                  />
-                </div>
-              </div>
-
-              <button
-                onClick={handleSaveFuelPrices}
-                disabled={fuelPricesSaving}
-                className="w-full md:w-auto px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium shadow-sm"
-              >
-                {fuelPricesSaving ? '저장 중...' : '💾 연료 가격 저장'}
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* 운행기록 제출 관리 */}
-        <div className="bg-white rounded-lg shadow p-6 mt-8">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-            <h2 className="text-xl font-semibold">운행기록 제출 관리</h2>
-
-            <div className="flex gap-3 items-center">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  조회 월
-                </label>
-                <input
-                  type="month"
-                  value={selectedMonth}
-                  onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <button
-                onClick={handleBulkSettlement}
-                disabled={submissions.filter(s => s.status === 'pending').length === 0}
-                className="mt-6 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
-              >
-                💰 일괄 정산
-              </button>
-
-              <button
-                onClick={handleCloseMonth}
-                disabled={submissions.filter(s => s.status === 'pending').length === 0}
-                className="mt-6 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
-              >
-                🔒 정산 마감
-              </button>
-            </div>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    구성원
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    연료
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    제출 월
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    제출일
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    상태
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    정산 금액
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    작업
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {submissions.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
-                      제출된 운행기록이 없습니다.
-                    </td>
-                  </tr>
-                ) : (
-                  submissions.map((submission) => (
-                    <tr key={submission.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {submission.users?.name || '알 수 없음'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {submission.users?.vehicle_type === 'gasoline' ? '휘발유' :
-                         submission.users?.vehicle_type === 'diesel' ? '경유' :
-                         submission.users?.vehicle_type === 'lpg' ? 'LPG' :
-                         submission.users?.vehicle_type === 'electric' ? '전기' : '-'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {submission.year}년 {submission.month}월
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(submission.submitted_at).toLocaleDateString('ko-KR')}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            submission.status === 'pending'
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-green-100 text-green-800'
-                          }`}
-                        >
-                          {submission.status === 'pending' ? '⏳ 정산중' : '✓ 정산완료'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {submission.settlement_amount ?
-                          `${submission.settlement_amount.toLocaleString()}원` :
-                          '-'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleViewRecords(submission)}
-                            className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-xs"
-                          >
-                            운행기록 보기
-                          </button>
-                          {submission.status === 'pending' ? (
-                            <button
-                              onClick={() => handleCompleteSubmission(submission.id)}
-                              className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors text-xs"
-                            >
-                              정산
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => handleCancelSubmission(submission.id)}
-                              className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors text-xs"
-                            >
-                              정산 취소
-                            </button>
-                          )}
                         </div>
                       </td>
                     </tr>
