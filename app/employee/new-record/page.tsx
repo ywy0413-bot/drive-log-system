@@ -272,6 +272,9 @@ export default function NewRecordPage() {
                       </div>
                     )}
                   </div>
+                  <p className="text-xs text-gray-500 mt-1.5">
+                    💡 지도상에는 직선거리로 표현되나, 실제 운행거리는 직선 거리에 보정계수 1.4를 곱한 거리로 계산되었습니다
+                  </p>
                 </div>
 
                 <div className="pt-3">
