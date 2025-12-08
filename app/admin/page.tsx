@@ -19,6 +19,7 @@ export default function AdminPage() {
   const [fuelPrices, setFuelPrices] = useState({
     gasoline_price: '',
     diesel_price: '',
+    lpg_price: '',
     electric_price: '',
     depreciation_cost: '',
   });
@@ -30,7 +31,7 @@ export default function AdminPage() {
   const [newEmployee, setNewEmployee] = useState({
     name: '',
     pin: '',
-    vehicleType: 'gasoline' as 'diesel' | 'gasoline' | 'electric',
+    vehicleType: 'gasoline' as 'diesel' | 'gasoline' | 'lpg' | 'electric',
     fuelEfficiency: '10.0',
   });
   const [addError, setAddError] = useState('');
@@ -136,6 +137,8 @@ export default function AdminPage() {
       fuelPrice = parseFloat(fuelPriceData.gasoline_price);
     } else if (vehicleType === 'diesel') {
       fuelPrice = parseFloat(fuelPriceData.diesel_price);
+    } else if (vehicleType === 'lpg') {
+      fuelPrice = parseFloat(fuelPriceData.lpg_price);
     } else if (vehicleType === 'electric') {
       fuelPrice = parseFloat(fuelPriceData.electric_price);
     }
@@ -301,6 +304,8 @@ export default function AdminPage() {
           fuelPrice = parseFloat(fuelPriceData.gasoline_price);
         } else if (vehicleType === 'diesel') {
           fuelPrice = parseFloat(fuelPriceData.diesel_price);
+        } else if (vehicleType === 'lpg') {
+          fuelPrice = parseFloat(fuelPriceData.lpg_price);
         } else if (vehicleType === 'electric') {
           fuelPrice = parseFloat(fuelPriceData.electric_price);
         }
@@ -501,6 +506,7 @@ export default function AdminPage() {
       setFuelPrices({
         gasoline_price: data.gasoline_price.toString(),
         diesel_price: data.diesel_price.toString(),
+        lpg_price: data.lpg_price?.toString() || '',
         electric_price: data.electric_price.toString(),
         depreciation_cost: data.depreciation_cost?.toString() || '140',
       });
@@ -509,6 +515,7 @@ export default function AdminPage() {
       setFuelPrices({
         gasoline_price: '',
         diesel_price: '',
+        lpg_price: '',
         electric_price: '',
         depreciation_cost: '140',
       });
@@ -518,7 +525,7 @@ export default function AdminPage() {
   }
 
   async function handleSaveFuelPrices() {
-    if (!fuelPrices.gasoline_price || !fuelPrices.diesel_price || !fuelPrices.electric_price || !fuelPrices.depreciation_cost) {
+    if (!fuelPrices.gasoline_price || !fuelPrices.diesel_price || !fuelPrices.lpg_price || !fuelPrices.electric_price || !fuelPrices.depreciation_cost) {
       alert('모든 연료 가격과 감가상각비를 입력해주세요.');
       return;
     }
@@ -533,6 +540,7 @@ export default function AdminPage() {
         month,
         gasoline_price: parseFloat(fuelPrices.gasoline_price),
         diesel_price: parseFloat(fuelPrices.diesel_price),
+        lpg_price: parseFloat(fuelPrices.lpg_price),
         electric_price: parseFloat(fuelPrices.electric_price),
         depreciation_cost: parseFloat(fuelPrices.depreciation_cost),
       }, {
@@ -681,13 +689,14 @@ export default function AdminPage() {
                     >
                       <option value="gasoline">휘발유</option>
                       <option value="diesel">경유</option>
+                      <option value="lpg">LPG</option>
                       <option value="electric">전기</option>
                     </select>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      연비 {newEmployee.vehicleType === 'electric' ? '(km/kWh)' : '(km/L)'}
+                      연비 ({newEmployee.vehicleType === 'electric' ? 'km/kWh' : 'km/L'})
                     </label>
                     <input
                       type="number"
@@ -766,13 +775,14 @@ export default function AdminPage() {
                     >
                       <option value="gasoline">휘발유</option>
                       <option value="diesel">경유</option>
+                      <option value="lpg">LPG</option>
                       <option value="electric">전기</option>
                     </select>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      연비 {editingEmployee.vehicleType === 'electric' ? '(km/kWh)' : '(km/L)'}
+                      연비 ({editingEmployee.vehicleType === 'electric' ? 'km/kWh' : 'km/L'})
                     </label>
                     <input
                       type="number"
@@ -851,10 +861,11 @@ export default function AdminPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {employee.vehicle_type === 'gasoline' ? '휘발유' :
-                         employee.vehicle_type === 'diesel' ? '경유' : '전기'}
+                         employee.vehicle_type === 'diesel' ? '경유' :
+                         employee.vehicle_type === 'lpg' ? 'LPG' : '전기'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {employee.fuel_efficiency?.toFixed(1)} {employee.vehicle_type === 'electric' ? 'km/kWh' : 'km/L'}
+                        {employee.fuel_efficiency?.toFixed(1)} ({employee.vehicle_type === 'electric' ? 'km/kWh' : 'km/L'})
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {new Date(employee.created_at).toLocaleDateString('ko-KR')}
@@ -895,7 +906,7 @@ export default function AdminPage() {
             <div className="text-center py-4 text-gray-500">로딩 중...</div>
           ) : (
             <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     휘발유 (원/L)
@@ -921,6 +932,20 @@ export default function AdminPage() {
                     onChange={(e) => setFuelPrices({ ...fuelPrices, diesel_price: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="예: 1500.00"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    LPG (원/L)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={fuelPrices.lpg_price}
+                    onChange={(e) => setFuelPrices({ ...fuelPrices, lpg_price: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="예: 1200.00"
                   />
                 </div>
 
@@ -1043,6 +1068,7 @@ export default function AdminPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {submission.users?.vehicle_type === 'gasoline' ? '휘발유' :
                          submission.users?.vehicle_type === 'diesel' ? '경유' :
+                         submission.users?.vehicle_type === 'lpg' ? 'LPG' :
                          submission.users?.vehicle_type === 'electric' ? '전기' : '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
