@@ -183,6 +183,19 @@ export default function NewRecordPage() {
                   />
                 </div>
 
+                <div>
+                  <label htmlFor="client_name" className="block text-xs font-semibold text-gray-700 mb-1.5">🏢 외근지 (업체명)</label>
+                  <input
+                    type="text"
+                    id="client_name"
+                    value={clientName}
+                    onChange={(e) => setClientName(e.target.value)}
+                    required
+                    placeholder="예: ㈜앤비젼"
+                    className="block w-full px-3 py-2 rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-sm"
+                  />
+                </div>
+
                 {isClient ? (
                   <>
                     <div className="space-y-3 bg-white p-3 rounded-xl border border-gray-200 shadow-sm">
@@ -239,19 +252,6 @@ export default function NewRecordPage() {
                     <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
                   </div>
                 )}
-
-                <div>
-                  <label htmlFor="client_name" className="block text-xs font-semibold text-gray-700 mb-1.5">🏢 외근지 (업체명)</label>
-                  <input
-                    type="text"
-                    id="client_name"
-                    value={clientName}
-                    onChange={(e) => setClientName(e.target.value)}
-                    required
-                    placeholder="예: ㈜앤비젼"
-                    className="block w-full px-3 py-2 rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-sm"
-                  />
-                </div>
 
                 <div>
                   <label htmlFor="distance" className="block text-xs font-semibold text-gray-700 mb-1.5">📏 운행거리 (km)</label>
