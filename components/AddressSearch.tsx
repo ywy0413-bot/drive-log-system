@@ -176,7 +176,7 @@ export default function AddressSearch({ label, onAddressSelect }: AddressSearchP
     const value = e.target.value;
     setQuery(value);
     if (value.trim().length >= 2) {
-      searchAddress(value);
+      searchAddress(value.trim());
     } else {
       setResults([]);
       setNoResults(false);
@@ -208,7 +208,7 @@ export default function AddressSearch({ label, onAddressSelect }: AddressSearchP
           if (results.length > 0 || favorites.length > 0) setShowResults(true);
         }}
         placeholder="업체명, 건물명 또는 주소를 입력하세요"
-        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-sm shadow-sm"
+        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all text-sm shadow-sm text-gray-900"
       />
 
       {showResults && (favorites.length > 0 || results.length > 0) && (

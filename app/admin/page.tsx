@@ -644,7 +644,7 @@ export default function AdminPage() {
                     step="0.01"
                     value={fuelPrices.gasoline_price}
                     onChange={(e) => setFuelPrices({ ...fuelPrices, gasoline_price: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                     placeholder="예: 1650.00"
                   />
                 </div>
@@ -658,7 +658,7 @@ export default function AdminPage() {
                     step="0.01"
                     value={fuelPrices.diesel_price}
                     onChange={(e) => setFuelPrices({ ...fuelPrices, diesel_price: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                     placeholder="예: 1500.00"
                   />
                 </div>
@@ -672,7 +672,7 @@ export default function AdminPage() {
                     step="0.01"
                     value={fuelPrices.lpg_price}
                     onChange={(e) => setFuelPrices({ ...fuelPrices, lpg_price: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                     placeholder="예: 1200.00"
                   />
                 </div>
@@ -686,7 +686,7 @@ export default function AdminPage() {
                     step="0.01"
                     value={fuelPrices.electric_price}
                     onChange={(e) => setFuelPrices({ ...fuelPrices, electric_price: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                     placeholder="예: 300.00"
                   />
                 </div>
@@ -700,7 +700,7 @@ export default function AdminPage() {
                     step="1"
                     value={fuelPrices.depreciation_cost}
                     onChange={(e) => setFuelPrices({ ...fuelPrices, depreciation_cost: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                     placeholder="예: 140"
                   />
                 </div>
@@ -731,7 +731,7 @@ export default function AdminPage() {
                   type="month"
                   value={selectedMonth}
                   onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                 />
               </div>
 
@@ -888,7 +888,7 @@ export default function AdminPage() {
                       value={newEmployee.name}
                       onChange={(e) => setNewEmployee({ ...newEmployee, name: e.target.value })}
                       required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                       placeholder="홍길동"
                     />
                   </div>
@@ -906,7 +906,7 @@ export default function AdminPage() {
                       }}
                       required
                       maxLength={4}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                       placeholder="1234"
                     />
                   </div>
@@ -918,7 +918,7 @@ export default function AdminPage() {
                     <select
                       value={newEmployee.vehicleType}
                       onChange={(e) => setNewEmployee({ ...newEmployee, vehicleType: e.target.value as any })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                     >
                       <option value="gasoline">휘발유</option>
                       <option value="diesel">경유</option>
@@ -937,7 +937,7 @@ export default function AdminPage() {
                       value={newEmployee.fuelEfficiency}
                       onChange={(e) => setNewEmployee({ ...newEmployee, fuelEfficiency: e.target.value })}
                       required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                       placeholder="10.0"
                     />
                   </div>
@@ -976,7 +976,7 @@ export default function AdminPage() {
                       value={editingEmployee.name}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, name: e.target.value })}
                       required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                     />
                   </div>
 
@@ -993,7 +993,7 @@ export default function AdminPage() {
                       }}
                       required
                       maxLength={4}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                     />
                   </div>
 
@@ -1004,7 +1004,7 @@ export default function AdminPage() {
                     <select
                       value={editingEmployee.vehicleType}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, vehicleType: e.target.value as any })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                     >
                       <option value="gasoline">휘발유</option>
                       <option value="diesel">경유</option>
@@ -1023,7 +1023,7 @@ export default function AdminPage() {
                       value={editingEmployee.fuelEfficiency}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, fuelEfficiency: e.target.value })}
                       required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                     />
                   </div>
                 </div>

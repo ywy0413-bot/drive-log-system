@@ -29,6 +29,8 @@ export default function NewRecordPage() {
   const [departure, setDeparture] = useState<Address | null>(null);
   const [destination, setDestination] = useState<Address | null>(null);
   const [waypoints, setWaypoints] = useState<{ id: number; address: Address | null }[]>([]);
+  const [isRoundTrip, setIsRoundTrip] = useState(false);
+  const [baseDistance, setBaseDistance] = useState('');
 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -87,6 +89,20 @@ export default function NewRecordPage() {
 
   const removeWaypoint = (id: number) => {
     setWaypoints(prev => prev.filter(wp => wp.id !== id));
+  };
+
+  const handleDistanceCalculated = (d: number) => {
+    setBaseDistance(d.toString());
+    setDistance(isRoundTrip ? (d * 2).toString() : d.toString());
+  };
+
+  const handleRoundTripToggle = () => {
+    const newRoundTrip = !isRoundTrip;
+    setIsRoundTrip(newRoundTrip);
+    if (baseDistance) {
+      const base = parseFloat(baseDistance);
+      setDistance(newRoundTrip ? (base * 2).toString() : base.toString());
+    }
   };
 
   if (!isClient || !user) return null;
@@ -179,7 +195,7 @@ export default function NewRecordPage() {
                     value={driveDate}
                     onChange={(e) => setDriveDate(e.target.value)}
                     required
-                    className="block w-full px-3 py-2 rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-sm"
+                    className="block w-full px-3 py-2 rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-sm text-gray-900"
                   />
                 </div>
 
@@ -192,7 +208,7 @@ export default function NewRecordPage() {
                     onChange={(e) => setClientName(e.target.value)}
                     required
                     placeholder="예: ㈜앤비젼"
-                    className="block w-full px-3 py-2 rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-sm"
+                    className="block w-full px-3 py-2 rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-sm text-gray-900"
                   />
                 </div>
 
@@ -211,6 +227,19 @@ export default function NewRecordPage() {
                         label="🔴 도착지"
                         onAddressSelect={(addr) => handleAddressSelect('destination', addr)}
                       />
+                      <div className="pt-2">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={isRoundTrip}
+                            onChange={handleRoundTripToggle}
+                            className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                          />
+                          <span className="text-sm font-medium text-gray-700">
+                            🔄 왕복 (거리 2배 적용)
+                          </span>
+                        </label>
+                      </div>
                     </div>
 
                     {waypoints.length > 0 && (
@@ -254,7 +283,9 @@ export default function NewRecordPage() {
                 )}
 
                 <div>
-                  <label htmlFor="distance" className="block text-xs font-semibold text-gray-700 mb-1.5">📏 운행거리 (km)</label>
+                  <label htmlFor="distance" className="block text-xs font-semibold text-gray-700 mb-1.5">
+                    📏 운행거리 (km) {isRoundTrip && <span className="text-blue-600">(왕복)</span>}
+                  </label>
                   <div className="relative">
                     <input
                       type="number"
@@ -264,7 +295,7 @@ export default function NewRecordPage() {
                       required
                       step="0.1"
                       placeholder="자동 계산됩니다"
-                      className="block w-full px-3 py-2 rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-sm"
+                      className="block w-full px-3 py-2 rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-sm text-gray-900"
                     />
                     {loadingDistance && (
                       <div className="absolute right-2 top-2">
@@ -274,6 +305,7 @@ export default function NewRecordPage() {
                   </div>
                   <p className="text-xs text-gray-500 mt-1.5">
                     💡 지도상에는 직선거리로 표현되나, 실제 운행거리는 직선 거리에 보정계수 1.4를 곱한 거리로 계산되었습니다
+                    {isRoundTrip && <span className="text-blue-600 font-semibold"> (왕복: 2배 적용됨)</span>}
                   </p>
                 </div>
 
@@ -317,7 +349,7 @@ export default function NewRecordPage() {
                   departure={departure}
                   destination={destination}
                   waypoints={waypoints.map(w => w.address).filter((a): a is Address => a !== null)}
-                  onDistanceCalculated={(d) => setDistance(d.toString())}
+                  onDistanceCalculated={handleDistanceCalculated}
                   setLoading={setLoadingDistance}
                 />
               ) : (
