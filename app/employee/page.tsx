@@ -124,7 +124,7 @@ export default function EmployeePage() {
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
           <div>
             <h1 className="text-xl md:text-2xl font-bold text-gray-900">자가운전대장</h1>
-            <p className="text-xs text-gray-600">
+            <p className="text-xs text-gray-800">
               {user?.name}님 환영합니다
             </p>
           </div>
@@ -140,28 +140,28 @@ export default function EmployeePage() {
       {/* 메인 컨텐츠 */}
       <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4">
         <div className="bg-white rounded-lg shadow p-4">
-          <h2 className="text-base md:text-lg font-semibold mb-3">운행 기록 관리</h2>
+          <h2 className="text-base md:text-lg font-semibold mb-3 text-gray-900">운행 기록 관리</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <Link
               href="/employee/new-record"
               className="p-3 border border-gray-200 rounded-lg hover:border-blue-500 transition-colors cursor-pointer"
             >
-              <h3 className="font-semibold text-sm mb-1">새 운행 기록</h3>
-              <p className="text-xs text-gray-600">오늘의 운행 기록을 등록하세요</p>
+              <h3 className="font-semibold text-sm mb-1 text-gray-900">새 운행 기록</h3>
+              <p className="text-xs text-gray-700">오늘의 운행 기록을 등록하세요</p>
             </Link>
 
             <Link
               href="/employee/records"
               className="p-3 border border-gray-200 rounded-lg hover:border-blue-500 transition-colors cursor-pointer"
             >
-              <h3 className="font-semibold text-sm mb-1">운행 기록 조회 및 제출</h3>
-              <p className="text-xs text-gray-600">지난 운행 기록을 확인하고 제출하세요</p>
+              <h3 className="font-semibold text-sm mb-1 text-gray-900">운행 기록 조회 및 제출</h3>
+              <p className="text-xs text-gray-700">지난 운행 기록을 확인하고 제출하세요</p>
             </Link>
 
             <div className="p-3 border border-gray-200 rounded-lg">
-              <h3 className="font-semibold text-sm mb-2">월별 정산 현황</h3>
-              <p className="text-xs text-gray-600 mb-1.5">최근 6개월 정산 추이</p>
+              <h3 className="font-semibold text-sm mb-2 text-gray-900">월별 정산 현황</h3>
+              <p className="text-xs text-gray-700 mb-1.5">최근 6개월 정산 추이</p>
               <p className="text-xs text-blue-600 mb-2">💡 정산 금액에는 감가 상각비용이 포함되어 있습니다</p>
               <div className="space-y-1.5">
                 {monthlyTrends.map((trend) => (
@@ -181,7 +181,7 @@ export default function EmployeePage() {
                           {trend.submission.status === 'pending' ? '정산중' : '정산완료'}
                         </span>
                         {trend.submission.status === 'completed' && (
-                          <div className="text-xs text-gray-600">
+                          <div className="text-xs text-gray-700">
                             <div>{trend.totalDistance.toFixed(1)} km</div>
                             <div className="font-semibold text-green-700">
                               {trend.submission.settlement_amount?.toLocaleString()}원
@@ -201,8 +201,8 @@ export default function EmployeePage() {
               href="/employee/records"
               className="p-3 border border-gray-200 rounded-lg hover:border-blue-500 transition-colors cursor-pointer"
             >
-              <h3 className="font-semibold text-sm mb-1">정산 내역</h3>
-              <p className="text-xs text-gray-600 mb-1.5">이번 달 운행기록 제출 상태</p>
+              <h3 className="font-semibold text-sm mb-1 text-gray-900">정산 내역</h3>
+              <p className="text-xs text-gray-700 mb-1.5">이번 달 운행기록 제출 상태</p>
               {currentMonthSubmission ? (
                 <div className="mt-1.5">
                   <span
@@ -222,8 +222,8 @@ export default function EmployeePage() {
           </div>
 
           <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-            <h3 className="font-semibold text-sm mb-1.5">사용자 정보</h3>
-            <div className="space-y-0.5 text-xs">
+            <h3 className="font-semibold text-sm mb-1.5 text-gray-900">사용자 정보</h3>
+            <div className="space-y-0.5 text-xs text-gray-800">
               <p><span className="font-medium">이름:</span> {user?.name}</p>
               <p><span className="font-medium">연료형태:</span> {
                 user?.vehicle_type === 'gasoline' ? '휘발유' :
@@ -234,7 +234,7 @@ export default function EmployeePage() {
                 <span className="font-medium">연비:</span> {
                   user?.fuel_efficiency?.toFixed(1) || '10.0'
                 } ({user?.vehicle_type === 'electric' ? 'km/kWh' : 'km/L'})
-                <span className="text-xs text-gray-600 ml-1">(차량등록증 상 연비에 85% 적용)</span>
+                <span className="text-xs text-gray-700 ml-1">(차량등록증 상 연비에 85% 적용)</span>
               </p>
             </div>
           </div>
