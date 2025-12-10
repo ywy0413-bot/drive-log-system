@@ -153,7 +153,7 @@ export default function LoginPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-0 focus:border-blue-500 transition-all text-sm bg-gray-50"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-0 focus:border-blue-500 transition-all text-sm bg-gray-50 text-gray-900"
                 >
                   <option value="">운전자를 선택하세요</option>
                   {employees.map((emp) => (
@@ -178,7 +178,7 @@ export default function LoginPage() {
                   }}
                   required
                   maxLength={4}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-0 focus:border-blue-500 transition-all text-3xl tracking-[0.7em] text-center font-bold bg-blue-50"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-0 focus:border-blue-500 transition-all text-3xl tracking-[0.7em] text-center font-bold bg-blue-50 text-gray-900"
                   placeholder="••••"
                 />
                 <p className="text-xs text-gray-500 mt-1.5 text-center">PIN번호는 개인 휴대전화 뒤 4자리입니다</p>
@@ -225,7 +225,7 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-0 focus:border-blue-500 transition-all text-sm bg-gray-50"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-0 focus:border-blue-500 transition-all text-sm bg-gray-50 text-gray-900"
                   placeholder="이메일을 입력하세요"
                 />
               </div>
@@ -241,7 +241,7 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   autoComplete="off"
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-0 focus:border-blue-500 transition-all text-sm bg-gray-50"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-0 focus:border-blue-500 transition-all text-sm bg-gray-50 text-gray-900"
                   placeholder="비밀번호를 입력하세요"
                 />
               </div>
