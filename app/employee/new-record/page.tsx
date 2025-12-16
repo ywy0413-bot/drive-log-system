@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCurrentUser } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
@@ -25,6 +25,7 @@ export default function NewRecordPage() {
   const [driveDate, setDriveDate] = useState(getKoreanToday());
   const [clientName, setClientName] = useState('');
   const [distance, setDistance] = useState('');
+  const [manualDistance, setManualDistance] = useState('');
 
   const [departure, setDeparture] = useState<Address | null>(null);
   const [destination, setDestination] = useState<Address | null>(null);
@@ -37,6 +38,10 @@ export default function NewRecordPage() {
   const [loadingDistance, setLoadingDistance] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const [submissionStatus, setSubmissionStatus] = useState<any>(null);
+  const [recentRecords, setRecentRecords] = useState<any[]>([]);
+  const [showClientSuggestions, setShowClientSuggestions] = useState(false);
+  const [filteredClients, setFilteredClients] = useState<any[]>([]);
+  const clientSuggestionsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const currentUser = getCurrentUser();
@@ -44,6 +49,7 @@ export default function NewRecordPage() {
       router.push('/login');
     } else {
       setUser(currentUser);
+      loadRecentRecords(currentUser.id);
     }
     setIsClient(true);
   }, [router]);
@@ -53,6 +59,31 @@ export default function NewRecordPage() {
       loadSubmissionStatus();
     }
   }, [user, driveDate]);
+
+  // 외부 클릭 감지
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (clientSuggestionsRef.current && !clientSuggestionsRef.current.contains(event.target as Node)) {
+        setShowClientSuggestions(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  async function loadRecentRecords(userId: string) {
+    const { data, error } = await supabase
+      .from('drive_records')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(100);
+
+    if (!error && data) {
+      setRecentRecords(data);
+    }
+  }
 
   async function loadSubmissionStatus() {
     const [year, month] = driveDate.split('-').map(Number);
@@ -105,6 +136,35 @@ export default function NewRecordPage() {
     }
   };
 
+  const handleClientNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setClientName(value);
+
+    if (value.trim().length > 0) {
+      // 업체명으로 필터링
+      const uniqueClients = new Map();
+      recentRecords.forEach(record => {
+        if (record.client_name.toLowerCase().includes(value.toLowerCase())) {
+          if (!uniqueClients.has(record.client_name)) {
+            uniqueClients.set(record.client_name, record);
+          }
+        }
+      });
+      const filtered = Array.from(uniqueClients.values());
+      setFilteredClients(filtered);
+      setShowClientSuggestions(true);
+    } else {
+      setFilteredClients([]);
+      setShowClientSuggestions(false);
+    }
+  };
+
+  const handleClientSelect = (record: any) => {
+    // 업체명만 설정
+    setClientName(record.client_name);
+    setShowClientSuggestions(false);
+  };
+
   if (!isClient || !user) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -125,10 +185,19 @@ export default function NewRecordPage() {
       setError('출발지와 도착지를 모두 입력해주세요.');
       return;
     }
+
+    if (!departure.address_name || !destination.address_name) {
+      setError('출발지와 도착지를 모두 입력해주세요.');
+      return;
+    }
+
     setError('');
     setLoading(true);
 
     try {
+      // 직접 입력 거리가 있으면 그것을 사용, 없으면 자동 계산 거리 사용
+      const finalDistance = manualDistance ? parseFloat(manualDistance) : parseFloat(distance);
+
       const { error } = await supabase.from('drive_records').insert([
         {
           user_id: user.id,
@@ -136,7 +205,7 @@ export default function NewRecordPage() {
           departure: departure.address_name,
           destination: destination.address_name,
           waypoints: waypoints.map(wp => wp.address?.address_name).filter(Boolean),
-          distance: parseFloat(distance),
+          distance: finalDistance,
           client_name: clientName,
           status: 'draft',
         },
@@ -199,17 +268,61 @@ export default function NewRecordPage() {
                   />
                 </div>
 
-                <div>
+                <div className="relative" ref={clientSuggestionsRef}>
                   <label htmlFor="client_name" className="block text-xs font-semibold text-gray-700 mb-1.5">🏢 외근지 (업체명)</label>
                   <input
                     type="text"
                     id="client_name"
+                    name="client_name_unique"
                     value={clientName}
-                    onChange={(e) => setClientName(e.target.value)}
+                    onChange={handleClientNameChange}
+                    onFocus={() => {
+                      // 포커스 시 최근 업체명 목록 표시
+                      if (recentRecords.length > 0) {
+                        const uniqueClients = new Map();
+                        recentRecords.forEach(record => {
+                          if (!uniqueClients.has(record.client_name)) {
+                            uniqueClients.set(record.client_name, record);
+                          }
+                        });
+                        const clients = Array.from(uniqueClients.values()).slice(0, 10);
+                        setFilteredClients(clients);
+                        setShowClientSuggestions(true);
+                      }
+                    }}
                     required
                     placeholder="예: ㈜앤비젼"
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck="false"
                     className="block w-full px-3 py-2 rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-sm text-gray-900"
                   />
+                  {showClientSuggestions && filteredClients.length > 0 && (
+                    <div className="absolute z-20 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-2xl max-h-60 overflow-auto">
+                      <div className="p-2">
+                        <div className="px-2 py-1 text-xs font-semibold text-gray-500 flex items-center gap-1">
+                          📋 최근 업체명
+                        </div>
+                        {filteredClients.map((record, index) => (
+                          <div
+                            key={index}
+                            onClick={() => handleClientSelect(record)}
+                            className="px-4 py-3 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 cursor-pointer rounded-lg transition-all mb-1 last:mb-0 border border-transparent hover:border-blue-200"
+                          >
+                            <div className="flex-1">
+                              <p className="text-sm font-bold text-blue-600 mb-1">
+                                {record.client_name}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {record.departure} → {record.destination}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {isClient ? (
@@ -283,29 +396,53 @@ export default function NewRecordPage() {
                 )}
 
                 <div>
-                  <label htmlFor="distance" className="block text-xs font-semibold text-gray-700 mb-1.5">
+                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">
                     📏 운행거리 (km) {isRoundTrip && <span className="text-blue-600">(왕복)</span>}
                   </label>
-                  <div className="relative">
-                    <input
-                      type="number"
-                      id="distance"
-                      value={distance}
-                      onChange={(e) => setDistance(e.target.value)}
-                      required
-                      step="0.1"
-                      placeholder="자동 계산됩니다"
-                      className="block w-full px-3 py-2 rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-sm text-gray-900"
-                    />
-                    {loadingDistance && (
-                      <div className="absolute right-2 top-2">
-                        <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                  <div className="grid grid-cols-2 gap-3">
+                    {/* 자동 계산 거리 */}
+                    <div>
+                      <label htmlFor="auto_distance" className="block text-xs text-gray-600 mb-1">
+                        자동 계산
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="number"
+                          id="auto_distance"
+                          value={distance}
+                          readOnly
+                          step="0.1"
+                          placeholder="계산 중..."
+                          className="block w-full px-3 py-2 rounded-lg border border-gray-300 bg-gray-100 text-gray-700 shadow-sm text-sm cursor-not-allowed"
+                        />
+                        {loadingDistance && (
+                          <div className="absolute right-2 top-2">
+                            <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                          </div>
+                        )}
                       </div>
-                    )}
+                    </div>
+
+                    {/* 직접 입력 거리 */}
+                    <div>
+                      <label htmlFor="manual_distance" className="block text-xs text-gray-600 mb-1">
+                        직접 입력 (선택)
+                      </label>
+                      <input
+                        type="number"
+                        id="manual_distance"
+                        value={manualDistance}
+                        onChange={(e) => setManualDistance(e.target.value)}
+                        step="0.1"
+                        placeholder="직접 입력"
+                        className="block w-full px-3 py-2 rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-sm text-gray-900"
+                      />
+                    </div>
                   </div>
                   <p className="text-xs text-gray-500 mt-1.5">
-                    💡 지도상에는 직선거리로 표현되나, 실제 운행거리는 직선 거리에 보정계수 1.4를 곱한 거리로 계산되었습니다
-                    {isRoundTrip && <span className="text-blue-600 font-semibold"> (왕복: 2배 적용됨)</span>}
+                    💡 자동 계산: 직선 거리 × 1.4 (보정계수){isRoundTrip && <span className="text-blue-600 font-semibold"> × 2 (왕복)</span>}
+                    <br />
+                    직접 입력란이 비어있으면 자동 계산 거리가 저장됩니다
                   </p>
                 </div>
 
