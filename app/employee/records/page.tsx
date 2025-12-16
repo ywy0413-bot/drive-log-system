@@ -280,6 +280,13 @@ export default function RecordsPage({
 
         {/* 운행 기록 목록 */}
         <div className="bg-white rounded-lg shadow overflow-hidden">
+          {!loading && records.length > 0 && (
+            <div className="px-4 py-2 bg-blue-50 border-b border-blue-100">
+              <p className="text-xs text-blue-700">
+                <span className="font-semibold text-blue-600">*</span> 표시는 직접 입력한 거리입니다
+              </p>
+            </div>
+          )}
           {loading ? (
             <div className="p-6 text-center text-gray-500 text-sm">로딩 중...</div>
           ) : records.length === 0 ? (
@@ -335,6 +342,9 @@ export default function RecordsPage({
                       </td>
                       <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-900 font-medium">
                         {parseFloat(record.distance).toFixed(1)}
+                        {record.is_manual_distance && (
+                          <span className="ml-1 text-blue-600" title="직접 입력한 거리">*</span>
+                        )}
                       </td>
                       <td className="px-3 py-2 text-xs text-gray-500">
                         {record.client_name}

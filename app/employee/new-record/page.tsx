@@ -196,7 +196,8 @@ export default function NewRecordPage() {
 
     try {
       // 직접 입력 거리가 있으면 그것을 사용, 없으면 자동 계산 거리 사용
-      const finalDistance = manualDistance ? parseFloat(manualDistance) : parseFloat(distance);
+      const isManualDistance = manualDistance && manualDistance.trim() !== '';
+      const finalDistance = isManualDistance ? parseFloat(manualDistance) : parseFloat(distance);
 
       const { error } = await supabase.from('drive_records').insert([
         {
@@ -206,6 +207,7 @@ export default function NewRecordPage() {
           destination: destination.address_name,
           waypoints: waypoints.map(wp => wp.address?.address_name).filter(Boolean),
           distance: finalDistance,
+          is_manual_distance: isManualDistance,
           client_name: clientName,
           status: 'draft',
         },

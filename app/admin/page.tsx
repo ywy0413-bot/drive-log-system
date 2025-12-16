@@ -1198,6 +1198,13 @@ export default function AdminPage() {
 
                     {/* 운행기록 테이블 */}
                     <div className="overflow-x-auto">
+                      {driveRecords.length > 0 && (
+                        <div className="px-4 py-2 bg-orange-50 border-b border-orange-100 mb-2">
+                          <p className="text-xs text-orange-700">
+                            <span className="font-semibold text-orange-600">*</span> 표시는 직접 입력한 거리입니다
+                          </p>
+                        </div>
+                      )}
                       <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                           <tr>
@@ -1232,6 +1239,9 @@ export default function AdminPage() {
                               </td>
                               <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-blue-600">
                                 {parseFloat(record.distance || 0).toFixed(1)}km
+                                {record.is_manual_distance && (
+                                  <span className="ml-1 text-orange-600" title="직접 입력한 거리">*</span>
+                                )}
                               </td>
                               <td className="px-4 py-3 text-sm text-gray-900">
                                 {record.client_name || '-'}
